@@ -55,23 +55,10 @@ function DefaultErrorComponent({ error, reset }: { error: Error; reset: () => vo
 }
 
 export const getRouter = () => {
-  let rawBase = import.meta.env.BASE_URL || '';
-
-  // Remove trailing slash
-  if (rawBase.endsWith('/')) {
-    rawBase = rawBase.slice(0, -1);
-  }
-  // Ensure leading slash if not empty
-  if (rawBase && !rawBase.startsWith('/')) {
-    rawBase = `/${rawBase}`;
-  }
-
-  // If rawBase evaluates to empty string (e.g. from "/"), pass undefined to omit it
-  const safeBasepath = rawBase || undefined;
-
   const router = createRouter({
     routeTree,
-    ...(safeBasepath ? { basepath: safeBasepath } : {}),
+    // Hardcode basepath to bypass Vite environment variable trailing slashes completely
+    basepath: import.meta.env.DEV ? '/' : '/yogenfruzanalytics',
     context: {},
     scrollRestoration: true,
     defaultPreloadStaleTime: 0,
