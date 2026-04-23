@@ -55,19 +55,23 @@ function DefaultErrorComponent({ error, reset }: { error: Error; reset: () => vo
 }
 
 export const getRouter = () => {
-  let safeBasepath = import.meta.env.BASE_URL || '/';
+  let rawBase = import.meta.env.BASE_URL || '';
 
-  // TanStack Router requires basepath to start with a slash and NOT end with a slash
-  if (!safeBasepath.startsWith('/')) {
-    safeBasepath = `/${safeBasepath}`;
+  // Remove trailing slash
+  if (rawBase.endsWith('/')) {
+    rawBase = rawBase.slice(0, -1);
   }
-  if (safeBasepath !== '/' && safeBasepath.endsWith('/')) {
-    safeBasepath = safeBasepath.slice(0, -1);
+  // Ensure leading slash if not empty
+  if (rawBase && !rawBase.startsWith('/')) {
+    rawBase = `/${rawBase}`;
   }
+
+  // If rawBase evaluates to empty string (e.g. from "/"), pass undefined to omit it
+  const safeBasepath = rawBase || undefined;
 
   const router = createRouter({
     routeTree,
-    basepath: safeBasepath,
+    ...(safeBasepath ? { basepath: safeBasepath } : {}),
     context: {},
     scrollRestoration: true,
     defaultPreloadStaleTime: 0,
