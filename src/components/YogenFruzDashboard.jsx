@@ -1311,17 +1311,17 @@ export default function Dashboard() {
                     <Td mono align="right" color={T.n700}>{fmtMoney(34000)}</Td>
                     <Td mono align="right" color={T.n700}>
                       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 8 }}>
-                        <span style={{ fontWeight: 600 }}>{fmtMoney(35280.18)}</span>
+                        <span style={{ fontWeight: 600 }}>{fmtMoney(39158.92)}</span>
                         <span style={{
                           fontSize: 10, padding: '2px 6px', borderRadius: 9999,
                           background: T.warningBg, color: T.warning, fontWeight: 600, fontFamily: T.fontBody,
-                        }}>104%</span>
+                        }}>115%</span>
                       </div>
                     </Td>
-                    <Td mono align="right" color={T.n700}>{fmtInt(198295)}</Td>
-                    <Td mono align="right" color={T.n700}>{fmtInt(17789175)}</Td>
-                    <Td mono align="right" color={T.n700}>{fmtPct(198295 / 17789175)}</Td>
-                    <Td mono align="right" color={T.n700}>{fmtCpc(35280.18 / 198295)}</Td>
+                    <Td mono align="right" color={T.n700}>{fmtInt(201367)}</Td>
+                    <Td mono align="right" color={T.n700}>{fmtInt(18849391)}</Td>
+                    <Td mono align="right" color={T.n700}>{fmtPct(201367 / 18849391)}</Td>
+                    <Td mono align="right" color={T.n700}>{fmtCpc(39158.92 / 201367)}</Td>
                     <Td mono align="right" color={T.n400}>
                       <span style={{ fontSize: 11 }}>non-additive</span>
                     </Td>
@@ -1698,7 +1698,7 @@ export default function Dashboard() {
             gap: 18, marginBottom: 20,
           }}>
             {CHANNEL_AGG.map((ch, i) => {
-              const pctOfClicks = (ch.clicks / 198295) * 100;
+              const pctOfClicks = (ch.clicks / 201367) * 100;
               const chColor = [T.c1, T.c2, T.c3, T.c4][i];
               const isLive = ch.clicks > 0;
               return (
@@ -1888,7 +1888,7 @@ export default function Dashboard() {
                       </td>
                     ))}
                     <td style={{ padding: '14px', fontFamily: T.fontMono, fontSize: 13, textAlign: 'right', color: T.n700, fontWeight: 700 }}>
-                      {fmtInt(198295)}
+                      {fmtInt(201367)}
                     </td>
                   </tr>
                 </tbody>
