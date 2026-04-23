@@ -249,6 +249,66 @@ const CREATIVES = {
   ],
 };
 
+// TikTok audience segments — per-campaign clicks/reach/cpc
+// Note: Protein audience-level spend is truncated in the source PDF; CPC preserved where available.
+const AUDIENCES = {
+  Youth: {
+    greek:   { clicks: 16081, reach: 204983, imp: 2297603, cpc: 0.09, spend: 1514 },
+    matcha:  { clicks: 5464,  reach: 118977, imp: 723019,  cpc: 0.10, spend: 535.64 },
+    protein: { clicks: 13811, reach: 110850, imp: 1708429, cpc: 0.08, spend: null },
+    wicked:  { clicks: 5452,  reach: 81917,  imp: 656640,  cpc: 0.09, spend: 493.76 },
+  },
+  Foodie: {
+    greek:   { clicks: 3848, reach: 229383, imp: 736909,  cpc: 0.29, spend: 1109.5 },
+    matcha:  { clicks: 1717, reach: 122240, imp: 269622,  cpc: 0.29, spend: 505.69 },
+    protein: { clicks: 5562, reach: 413847, imp: 1073463, cpc: 0.19, spend: null },
+    wicked:  { clicks: 1751, reach: 195731, imp: 382470,  cpc: 0.28, spend: 488.89 },
+  },
+  Wellness: {
+    greek:   { clicks: 2185, reach: 201246, imp: 483086,  cpc: 0.27, spend: 584.8 },
+    matcha:  { clicks: 1604, reach: 108380, imp: 283063,  cpc: 0.31, spend: 503.08 },
+    protein: { clicks: 5450, reach: 400079, imp: 1057275, cpc: 0.20, spend: null },
+    wicked:  { clicks: 1724, reach: 93529,  imp: 298870,  cpc: 0.30, spend: 519.27 },
+  },
+  Parents: {
+    greek:   { clicks: 2144, reach: 137681, imp: 424642, cpc: 0.28, spend: 590.1 },
+    matcha:  { clicks: 1663, reach: 103053, imp: 286523, cpc: 0.30, spend: 502.06 },
+    protein: { clicks: 4440, reach: 285461, imp: 936770, cpc: 0.25, spend: null },
+    wicked:  { clicks: 1652, reach: 78421,  imp: 290960, cpc: 0.31, spend: 515.42 },
+  },
+  'Women Wellness': {
+    greek:   { clicks: 2572, reach: 164662, imp: 549073, cpc: 0.27, spend: 706.2 },
+    matcha:  { clicks: 1694, reach: 119267, imp: 279005, cpc: 0.31, spend: 525.06 },
+    protein: null,
+    wicked:  null,
+  },
+  'Women Wellness · Gen Z': {
+    greek:   { clicks: 589,  reach: 31802,  imp: 79403,  cpc: 0.35, spend: 206.2 },
+    matcha:  { clicks: 1606, reach: 107608, imp: 280751, cpc: 0.31, spend: 498.47 },
+    protein: null,
+    wicked:  { clicks: 1739, reach: 145130, imp: 381872, cpc: 0.30, spend: 524.13 },
+  },
+};
+
+// Channel-level aggregate stats across all 4 campaigns
+const CHANNEL_AGG = (() => {
+  const names = ['Google', 'Meta', 'TikTok', 'GroundTruth'];
+  return names.map(ch => {
+    const rows = CAMPAIGNS.map(c => c.channels[ch]);
+    const spend = rows.reduce((a, r) => a + (r.spend || 0), 0);
+    const clicks = rows.reduce((a, r) => a + (r.clicks || 0), 0);
+    const imp = rows.reduce((a, r) => a + (r.impressions || 0), 0);
+    const reach = rows.reduce((a, r) => a + (r.reach || 0), 0);
+    return {
+      name: ch,
+      spend, clicks, impressions: imp, reach,
+      ctr: imp > 0 ? clicks / imp : 0,
+      cpc: clicks > 0 ? spend / clicks : 0,
+      campaigns: rows.filter(r => (r.clicks || 0) > 0).length,
+    };
+  });
+})();
+
 /* -------------------------------------------------------------------------- */
 /*  UTILITIES                                                                 */
 /* -------------------------------------------------------------------------- */
@@ -786,14 +846,23 @@ export default function Dashboard() {
                 fontFamily: T.fontBody, fontSize: 12, color: T.n500,
                 fontWeight: 500, marginBottom: 4,
               }}>
-                performance marketing · {agg.dateRange}
+                {(() => {
+                  const subs = {
+                    overview: `performance marketing · ${agg.dateRange}`,
+                    campaigns: `4-campaign portfolio · ${agg.dateRange}`,
+                    channels: 'platform performance · google · meta · tiktok · groundtruth',
+                    audiences: 'tiktok audience segments · where scale comes from',
+                    stores: 'google local conversions · drive-to-store performance',
+                  };
+                  return subs[activeNav] || subs.overview;
+                })()}
               </div>
               <h1 style={{
                 margin: 0, fontFamily: T.fontDisplay, fontSize: 32,
                 fontWeight: 700, color: T.n700, letterSpacing: '-0.025em',
                 lineHeight: 1.1,
               }}>
-                {active ? `${active.name} campaign` : 'overview'}
+                {active ? `${active.name} campaign` : activeNav}
               </h1>
             </div>
 
@@ -859,6 +928,10 @@ export default function Dashboard() {
               );
             })}
           </div>
+
+          {/* ================= VIEW ROUTER ================= */}
+
+          {activeNav === 'overview' && (<>
 
           {/* HERO KPIs */}
           <div className="yf-stagger" style={{
@@ -1408,6 +1481,772 @@ export default function Dashboard() {
               ))}
             </div>
           </Panel>
+
+          </>)}
+          {/* ================= END OVERVIEW VIEW ================= */}
+
+
+          {/* ================= CAMPAIGNS VIEW ================= */}
+          {activeNav === 'campaigns' && (<>
+
+          {/* Executive insight strip (if campaign selected) */}
+          {active && (
+            <div style={{
+              background: T.n0, border: `1px solid ${T.n100}`,
+              borderRadius: 16, padding: '18px 22px', marginBottom: 20,
+              display: 'flex', alignItems: 'flex-start', gap: 14,
+              boxShadow: T.shadowSm,
+            }}>
+              <div style={{
+                width: 34, height: 34, borderRadius: 10, flexShrink: 0,
+                background: T.p50, color: T.p600,
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+              }}>
+                <Sparkles size={17} strokeWidth={1.75} />
+              </div>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontSize: 12, color: T.n500, fontWeight: 500, marginBottom: 2 }}>executive insight</div>
+                <div style={{ fontSize: 14, color: T.n700, lineHeight: 1.55, letterSpacing: '-0.01em' }}>{active.insight}</div>
+              </div>
+              {active.budgetStatus === 'over' && (
+                <div style={{
+                  padding: '5px 11px', borderRadius: 9999,
+                  background: T.warningBg, color: T.warning,
+                  fontSize: 11, fontWeight: 600,
+                  display: 'flex', alignItems: 'center', gap: 5, flexShrink: 0,
+                }}>
+                  <Info size={12} strokeWidth={2.25} />
+                  over budget
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* 4 Campaign cards */}
+          <div className="yf-stagger" style={{
+            display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)',
+            gap: 18, marginBottom: 20,
+          }}>
+            {CAMPAIGNS.map(c => {
+              const isSelected = activeId === c.id;
+              const over = c.budgetStatus === 'over';
+              const budgetPct = (c.spend / c.budget) * 100;
+              const channelSpend = [
+                { name: 'Google', val: c.channels.Google.spend, color: T.c1 },
+                { name: 'Meta',   val: c.channels.Meta.spend,   color: T.c2 },
+                { name: 'TikTok', val: c.channels.TikTok.spend, color: T.c3 },
+                { name: 'GT',     val: c.channels.GroundTruth.spend, color: T.c4 },
+              ].filter(x => x.val > 0);
+              return (
+                <div
+                  key={c.id}
+                  onClick={() => setActiveId(isSelected ? 'all' : c.id)}
+                  style={{
+                    background: T.n0,
+                    border: isSelected ? `1.5px solid ${T.b300}` : `1px solid ${T.n100}`,
+                    borderRadius: 16, padding: 22,
+                    boxShadow: isSelected ? T.shadowMd : T.shadowSm,
+                    cursor: 'pointer',
+                    transition: `all ${T.easeOut} 200ms`,
+                    display: 'flex', flexDirection: 'column', gap: 16,
+                    position: 'relative',
+                  }}
+                  onMouseEnter={e => { if (!isSelected) { e.currentTarget.style.boxShadow = T.shadowMd; e.currentTarget.style.transform = 'translateY(-2px)'; } }}
+                  onMouseLeave={e => { if (!isSelected) { e.currentTarget.style.boxShadow = T.shadowSm; e.currentTarget.style.transform = 'translateY(0)'; } }}
+                >
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12 }}>
+                    <div>
+                      <div style={{
+                        fontFamily: T.fontDisplay, fontSize: 22, fontWeight: 700,
+                        color: T.n700, letterSpacing: '-0.02em', textTransform: 'lowercase',
+                      }}>{c.name}</div>
+                      <div style={{ fontSize: 12, color: T.n500, marginTop: 3 }}>
+                        {c.theme} · {c.dateRange}
+                      </div>
+                    </div>
+                    {over ? (
+                      <span style={{
+                        padding: '4px 10px', borderRadius: 9999,
+                        background: T.warningBg, color: T.warning,
+                        fontSize: 11, fontWeight: 600, flexShrink: 0,
+                      }}>over budget</span>
+                    ) : (
+                      <span style={{
+                        padding: '4px 10px', borderRadius: 9999,
+                        background: T.successBg, color: T.success,
+                        fontSize: 11, fontWeight: 600, flexShrink: 0,
+                      }}>on plan</span>
+                    )}
+                  </div>
+
+                  {/* Budget progress bar */}
+                  <div>
+                    <div style={{
+                      display: 'flex', justifyContent: 'space-between',
+                      fontSize: 11, color: T.n500, marginBottom: 6,
+                    }}>
+                      <span>spend vs budget · {budgetPct.toFixed(0)}% used</span>
+                      <span style={{ fontFamily: T.fontMono, color: T.n700, fontWeight: 500 }}>
+                        {fmtMoney(c.spend)} / {fmtMoney(c.budget)}
+                      </span>
+                    </div>
+                    <div style={{
+                      height: 6, background: T.n100, borderRadius: 3,
+                      position: 'relative', overflow: 'visible',
+                    }}>
+                      <div style={{
+                        position: 'absolute', left: 0, top: 0, bottom: 0,
+                        width: Math.min(100, budgetPct) + '%',
+                        background: over ? T.warning : T.blue,
+                        borderRadius: budgetPct > 100 ? '3px 0 0 3px' : 3,
+                      }} />
+                      {budgetPct > 100 && (
+                        <div style={{
+                          position: 'absolute', left: '100%', top: -1, bottom: -1,
+                          width: Math.min(20, budgetPct - 100) + '%',
+                          background: T.danger,
+                          borderRadius: '0 3px 3px 0',
+                        }} />
+                      )}
+                    </div>
+                  </div>
+
+                  {/* 4 mini stats */}
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 10 }}>
+                    {[
+                      { label: 'clicks', val: fmtNum(c.clicks) },
+                      { label: 'ctr', val: fmtPct(c.ctr, 2) },
+                      { label: 'max reach', val: fmtNum(c.reach) },
+                      { label: 'store visits', val: fmtInt(c.storeVisits) },
+                    ].map(s => (
+                      <div key={s.label} style={{
+                        padding: '10px 12px', background: T.n25,
+                        borderRadius: 10, border: `1px solid ${T.n100}`,
+                      }}>
+                        <div style={{ fontSize: 10, color: T.n500, fontWeight: 500, marginBottom: 3 }}>{s.label}</div>
+                        <div style={{
+                          fontFamily: T.fontDisplay, fontSize: 17, fontWeight: 700,
+                          color: T.n700, letterSpacing: '-0.015em',
+                          fontVariantNumeric: 'tabular-nums',
+                        }}>{s.val}</div>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Channel spend segments */}
+                  <div>
+                    <div style={{ fontSize: 11, color: T.n500, fontWeight: 500, marginBottom: 6 }}>
+                      channel spend allocation
+                    </div>
+                    <div style={{
+                      display: 'flex', height: 8, borderRadius: 4, overflow: 'hidden',
+                      background: T.n100,
+                    }}>
+                      {channelSpend.map(ch => (
+                        <div key={ch.name} style={{
+                          width: (ch.val / c.spend * 100) + '%',
+                          background: ch.color,
+                          transition: `width ${T.easeOut} 400ms`,
+                        }} title={`${ch.name}: ${fmtMoney(ch.val)}`} />
+                      ))}
+                    </div>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, marginTop: 8 }}>
+                      {channelSpend.map(ch => (
+                        <div key={ch.name} style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 11, color: T.n500 }}>
+                          <span style={{ width: 7, height: 7, borderRadius: 2, background: ch.color }} />
+                          {ch.name} <span style={{ color: T.n700, fontFamily: T.fontMono, marginLeft: 2 }}>
+                            {((ch.val / c.spend) * 100).toFixed(0)}%
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Tag row + insight */}
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                    <span style={{ padding: '4px 10px', borderRadius: 9999, background: T.b50, color: T.b600, fontSize: 11, fontWeight: 600 }}>
+                      top driver · {c.topDriver}
+                    </span>
+                    <span style={{ padding: '4px 10px', borderRadius: 9999, background: T.n50, color: T.n600, fontSize: 11, fontWeight: 500 }}>
+                      best ctr · {c.bestCtrChannel}
+                    </span>
+                  </div>
+
+                  <div style={{
+                    fontSize: 12, color: T.n600, lineHeight: 1.5,
+                    letterSpacing: '-0.005em', paddingTop: 4,
+                    borderTop: `1px solid ${T.n100}`,
+                  }}>
+                    {c.insight}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          </>)}
+          {/* ================= END CAMPAIGNS VIEW ================= */}
+
+
+          {/* ================= CHANNELS VIEW ================= */}
+          {activeNav === 'channels' && (<>
+
+          {/* Channel KPI row */}
+          <div className="yf-stagger" style={{
+            display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)',
+            gap: 18, marginBottom: 20,
+          }}>
+            {CHANNEL_AGG.map((ch, i) => {
+              const pctOfClicks = (ch.clicks / 198295) * 100;
+              const chColor = [T.c1, T.c2, T.c3, T.c4][i];
+              const isLive = ch.clicks > 0;
+              return (
+                <div key={ch.name} style={{
+                  background: T.n0, border: `1px solid ${T.n100}`,
+                  borderRadius: 16, padding: '20px 22px',
+                  boxShadow: T.shadowSm, minHeight: 200,
+                  display: 'flex', flexDirection: 'column', gap: 12,
+                  opacity: isLive ? 1 : 0.7,
+                }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <span style={{ width: 10, height: 10, borderRadius: 3, background: chColor }} />
+                      <span style={{
+                        fontFamily: T.fontDisplay, fontSize: 17, fontWeight: 600,
+                        color: T.n700, letterSpacing: '-0.01em',
+                      }}>{ch.name}</span>
+                    </div>
+                    <span style={{
+                      fontSize: 10, color: T.n400, fontFamily: T.fontMono,
+                    }}>{ch.campaigns}/4 campaigns</span>
+                  </div>
+
+                  <div>
+                    <div style={{ fontSize: 11, color: T.n500, fontWeight: 500, marginBottom: 2 }}>clicks</div>
+                    <div style={{
+                      fontFamily: T.fontDisplay, fontSize: 28, fontWeight: 700,
+                      color: T.n700, letterSpacing: '-0.02em',
+                      fontVariantNumeric: 'tabular-nums',
+                    }}>{fmtNum(ch.clicks)}</div>
+                    <div style={{ fontSize: 11, color: T.n400, marginTop: 2 }}>
+                      {pctOfClicks.toFixed(1)}% of total clicks
+                    </div>
+                  </div>
+
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginTop: 'auto' }}>
+                    <div>
+                      <div style={{ fontSize: 10, color: T.n500 }}>spend</div>
+                      <div style={{ fontFamily: T.fontMono, fontSize: 14, color: T.n700, fontWeight: 500 }}>{fmtMoney(ch.spend)}</div>
+                    </div>
+                    <div>
+                      <div style={{ fontSize: 10, color: T.n500 }}>cpc</div>
+                      <div style={{ fontFamily: T.fontMono, fontSize: 14, color: T.n700, fontWeight: 500 }}>{fmtCpc(ch.cpc)}</div>
+                    </div>
+                    <div>
+                      <div style={{ fontSize: 10, color: T.n500 }}>ctr</div>
+                      <div style={{ fontFamily: T.fontMono, fontSize: 14, color: T.n700, fontWeight: 500 }}>{fmtPct(ch.ctr)}</div>
+                    </div>
+                    <div>
+                      <div style={{ fontSize: 10, color: T.n500 }}>impressions</div>
+                      <div style={{ fontFamily: T.fontMono, fontSize: 14, color: T.n700, fontWeight: 500 }}>{fmtNum(ch.impressions)}</div>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Channel spend stacked (reuse) */}
+          <Panel
+            title="channel spend by campaign"
+            subtitle="stacked bars · reveals where each campaign's money went"
+            minH={340}
+            style={{ marginBottom: 20 }}
+            rightSlot={
+              <div style={{ display: 'flex', gap: 14, alignItems: 'center', flexWrap: 'wrap' }}>
+                {[{ k: 'Google', c: T.c1 }, { k: 'Meta', c: T.c2 }, { k: 'TikTok', c: T.c3 }, { k: 'GroundTruth', c: T.c4 }].map(l => (
+                  <div key={l.k} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <span style={{ width: 8, height: 8, borderRadius: 2, background: l.c }} />
+                    <span style={{ fontSize: 12, color: T.n600 }}>{l.k}</span>
+                  </div>
+                ))}
+              </div>
+            }
+          >
+            <ResponsiveContainer width="100%" height={280}>
+              <BarChart data={channelSpendData} margin={{ top: 10, right: 8, left: -6, bottom: 6 }}>
+                <CartesianGrid stroke={T.n100} horizontal vertical={false} />
+                <XAxis dataKey="name" tick={{ fill: T.n500, fontSize: 12, fontFamily: T.fontBody }} axisLine={{ stroke: T.n100 }} tickLine={false} />
+                <YAxis tick={{ fill: T.n500, fontSize: 11, fontFamily: T.fontMono }} axisLine={false} tickLine={false}
+                  tickFormatter={(v) => '$' + (v >= 1000 ? (v / 1000) + 'k' : v)} />
+                <Tooltip cursor={{ fill: T.b50, opacity: 0.55 }} content={<ChartTip valueFormatter={(v) => fmtMoney(v)} />} />
+                <Bar dataKey="Google" stackId="s" fill={T.c1} />
+                <Bar dataKey="Meta" stackId="s" fill={T.c2} />
+                <Bar dataKey="TikTok" stackId="s" fill={T.c3} />
+                <Bar dataKey="GroundTruth" stackId="s" fill={T.c4} radius={[8, 8, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </Panel>
+
+          {/* Two-panel row: CTR by channel + CPC grouped */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 18, marginBottom: 20 }}>
+            <Panel title="ctr by channel" subtitle="google leads intent-driven click-through">
+              <ResponsiveContainer width="100%" height={240}>
+                <BarChart data={CHANNEL_AGG.map(ch => ({ name: ch.name, ctr: ch.ctr * 100 }))}
+                  layout="vertical" margin={{ top: 4, right: 32, left: 14, bottom: 4 }}>
+                  <CartesianGrid stroke={T.n100} horizontal={false} />
+                  <XAxis type="number" tick={{ fill: T.n500, fontSize: 11, fontFamily: T.fontMono }}
+                    axisLine={false} tickLine={false} tickFormatter={(v) => v.toFixed(1) + '%'} />
+                  <YAxis type="category" dataKey="name"
+                    tick={{ fill: T.n600, fontSize: 13, fontFamily: T.fontBody }}
+                    axisLine={false} tickLine={false} width={90} />
+                  <Tooltip cursor={{ fill: T.b50, opacity: 0.55 }}
+                    content={<ChartTip valueFormatter={(v) => v.toFixed(2) + '%'} />} />
+                  <Bar dataKey="ctr" radius={[0, 8, 8, 0]}>
+                    {CHANNEL_AGG.map((_, i) => <Cell key={i} fill={[T.c1, T.c2, T.c3, T.c4][i]} />)}
+                    <LabelList dataKey="ctr" position="right"
+                      formatter={(v) => v.toFixed(2) + '%'}
+                      style={{ fill: T.n700, fontFamily: T.fontMono, fontSize: 11, fontWeight: 500 }} />
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            </Panel>
+
+            <Panel title="cost per click by campaign × channel" subtitle="meta + tiktok scale cheapest; google commands premium">
+              <ResponsiveContainer width="100%" height={240}>
+                <BarChart data={cpcData} margin={{ top: 10, right: 8, left: -12, bottom: 4 }}>
+                  <CartesianGrid stroke={T.n100} horizontal vertical={false} />
+                  <XAxis dataKey="name" tick={{ fill: T.n500, fontSize: 12 }} axisLine={{ stroke: T.n100 }} tickLine={false} />
+                  <YAxis tick={{ fill: T.n500, fontSize: 11, fontFamily: T.fontMono }} axisLine={false} tickLine={false}
+                    tickFormatter={(v) => '$' + v.toFixed(2)} />
+                  <Tooltip cursor={{ fill: T.b50, opacity: 0.55 }}
+                    content={<ChartTip valueFormatter={(v) => '$' + v.toFixed(2)} />} />
+                  <Bar dataKey="Google" fill={T.c1} radius={[6, 6, 0, 0]} />
+                  <Bar dataKey="Meta" fill={T.c2} radius={[6, 6, 0, 0]} />
+                  <Bar dataKey="TikTok" fill={T.c3} radius={[6, 6, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </Panel>
+          </div>
+
+          {/* Channel × campaign matrix table */}
+          <Panel
+            title="channel × campaign matrix"
+            subtitle="clicks delivered per channel, per campaign · row totals in right column"
+            pad={0}
+            style={{ marginBottom: 20 }}
+          >
+            <div style={{ overflowX: 'auto', padding: '0 4px 4px' }}>
+              <table style={{ width: '100%', borderCollapse: 'separate', borderSpacing: 0 }}>
+                <thead>
+                  <tr>
+                    <th style={{ padding: '12px 14px', textAlign: 'left', fontSize: 12, fontWeight: 500, color: T.n600, background: T.n50, borderBottom: `1px solid ${T.n100}` }}>Channel</th>
+                    {CAMPAIGNS.map(c => (
+                      <th key={c.id} style={{ padding: '12px 14px', textAlign: 'right', fontSize: 12, fontWeight: 500, color: T.n600, background: T.n50, borderBottom: `1px solid ${T.n100}` }}>{c.name}</th>
+                    ))}
+                    <th style={{ padding: '12px 14px', textAlign: 'right', fontSize: 12, fontWeight: 600, color: T.n700, background: T.n50, borderBottom: `1px solid ${T.n100}` }}>total</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {['Google', 'Meta', 'TikTok', 'GroundTruth'].map((chName, chIdx) => {
+                    const rowTotal = CAMPAIGNS.reduce((a, c) => a + c.channels[chName].clicks, 0);
+                    const maxClicks = Math.max(...CAMPAIGNS.flatMap(c => ['Google', 'Meta', 'TikTok', 'GroundTruth'].map(n => c.channels[n].clicks)));
+                    return (
+                      <tr key={chName}>
+                        <td style={{ padding: '14px', borderBottom: `1px solid ${T.n100}`, fontSize: 13 }}>
+                          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+                            <span style={{ width: 8, height: 8, borderRadius: 2, background: [T.c1, T.c2, T.c3, T.c4][chIdx] }} />
+                            <span style={{ color: T.n700, fontWeight: 500 }}>{chName}</span>
+                          </span>
+                        </td>
+                        {CAMPAIGNS.map(c => {
+                          const v = c.channels[chName].clicks;
+                          const intensity = maxClicks > 0 ? v / maxClicks : 0;
+                          return (
+                            <td key={c.id} style={{
+                              padding: '14px', borderBottom: `1px solid ${T.n100}`,
+                              fontFamily: T.fontMono, fontSize: 13, textAlign: 'right',
+                              color: v > 0 ? T.n700 : T.n300,
+                              background: v > 0 ? `rgba(1, 151, 217, ${intensity * 0.14})` : 'transparent',
+                            }}>{v > 0 ? fmtInt(v) : '—'}</td>
+                          );
+                        })}
+                        <td style={{
+                          padding: '14px', borderBottom: `1px solid ${T.n100}`,
+                          fontFamily: T.fontMono, fontSize: 13, textAlign: 'right',
+                          color: T.n700, fontWeight: 600,
+                        }}>{fmtInt(rowTotal)}</td>
+                      </tr>
+                    );
+                  })}
+                  <tr style={{ background: T.n50 }}>
+                    <td style={{ padding: '14px', fontSize: 13, fontWeight: 600, color: T.n700 }}>campaign total</td>
+                    {CAMPAIGNS.map(c => (
+                      <td key={c.id} style={{ padding: '14px', fontFamily: T.fontMono, fontSize: 13, textAlign: 'right', color: T.n700, fontWeight: 600 }}>
+                        {fmtInt(c.clicks)}
+                      </td>
+                    ))}
+                    <td style={{ padding: '14px', fontFamily: T.fontMono, fontSize: 13, textAlign: 'right', color: T.n700, fontWeight: 700 }}>
+                      {fmtInt(198295)}
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </Panel>
+
+          </>)}
+          {/* ================= END CHANNELS VIEW ================= */}
+
+
+          {/* ================= AUDIENCES VIEW ================= */}
+          {activeNav === 'audiences' && (<>
+
+          {(() => {
+            // Aggregate audience data
+            const audienceRows = Object.entries(AUDIENCES).map(([name, byCampaign]) => {
+              const campaignClicks = {};
+              let totalClicks = 0, totalReach = 0, totalImpr = 0, totalSpend = 0, campaignsCovered = 0;
+              CAMPAIGNS.forEach(c => {
+                const d = byCampaign[c.id];
+                if (d) {
+                  campaignClicks[c.id] = d.clicks;
+                  totalClicks += d.clicks;
+                  totalReach += d.reach;
+                  totalImpr += d.imp;
+                  if (d.spend) totalSpend += d.spend;
+                  campaignsCovered++;
+                } else {
+                  campaignClicks[c.id] = 0;
+                }
+              });
+              return {
+                name,
+                totalClicks, totalReach, totalImpr, totalSpend,
+                campaignsCovered,
+                ctr: totalImpr > 0 ? totalClicks / totalImpr : 0,
+                cpc: totalSpend > 0 && totalClicks > 0 ? totalSpend / totalClicks : null,
+                ...campaignClicks,
+              };
+            }).sort((a, b) => b.totalClicks - a.totalClicks);
+
+            const youthRow = audienceRows.find(r => r.name === 'Youth');
+            const totalAudClicks = audienceRows.reduce((a, r) => a + r.totalClicks, 0);
+
+            return (
+              <>
+                {/* Hero row */}
+                <div className="yf-stagger" style={{
+                  display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)',
+                  gap: 18, marginBottom: 20,
+                }}>
+                  <KPICard
+                    hero
+                    label="top audience"
+                    value={"youth"}
+                    icon={Users}
+                    context={`${fmtInt(youthRow.totalClicks)} clicks · all 4 campaigns · avg cpc $0.09`}
+                  />
+                  <KPICard
+                    label="tiktok audience clicks"
+                    value={totalAudClicks}
+                    icon={MousePointer}
+                    context={`${fmtInt(youthRow.totalClicks)} from youth · ${((youthRow.totalClicks / totalAudClicks) * 100).toFixed(0)}% of total`}
+                  />
+                  <KPICard
+                    label="audience segments"
+                    value={audienceRows.length}
+                    icon={Layers}
+                    context="active across the portfolio"
+                  />
+                  <KPICard
+                    label="cheapest segment"
+                    value={"youth"}
+                    icon={Target}
+                    context="$0.08–$0.10 cpc · leads efficiency in every campaign"
+                  />
+                </div>
+
+                {/* Insight strip */}
+                <div style={{
+                  background: T.b50, border: `1px solid ${T.b100}`,
+                  borderRadius: 16, padding: '18px 22px', marginBottom: 20,
+                  display: 'flex', alignItems: 'flex-start', gap: 14,
+                }}>
+                  <div style={{
+                    width: 34, height: 34, borderRadius: 10, flexShrink: 0,
+                    background: T.b100, color: T.b600,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  }}>
+                    <Sparkles size={17} strokeWidth={1.75} />
+                  </div>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontSize: 12, color: T.b600, fontWeight: 500, marginBottom: 2 }}>audience insight</div>
+                    <div style={{ fontSize: 14, color: T.n700, lineHeight: 1.55, letterSpacing: '-0.01em' }}>
+                      youth audience drove the most clicks at the lowest cpc in <strong>all 4 campaigns</strong>. it's the single most repeatable unlock in tiktok's inventory — foodie and wellness fill out reach, but youth is the efficiency engine.
+                    </div>
+                  </div>
+                </div>
+
+                {/* Audience clicks comparison */}
+                <Panel
+                  title="clicks by audience segment"
+                  subtitle="stacked by campaign · shows where each audience scales"
+                  style={{ marginBottom: 20 }}
+                >
+                  <ResponsiveContainer width="100%" height={300}>
+                    <BarChart data={audienceRows} layout="vertical" margin={{ top: 10, right: 30, left: 80, bottom: 10 }}>
+                      <CartesianGrid stroke={T.n100} horizontal={false} />
+                      <XAxis type="number" tick={{ fill: T.n500, fontSize: 11, fontFamily: T.fontMono }}
+                        axisLine={false} tickLine={false} tickFormatter={(v) => fmtNum(v)} />
+                      <YAxis type="category" dataKey="name"
+                        tick={{ fill: T.n600, fontSize: 12, fontFamily: T.fontBody }}
+                        axisLine={false} tickLine={false} width={140} />
+                      <Tooltip cursor={{ fill: T.b50, opacity: 0.55 }}
+                        content={<ChartTip valueFormatter={(v) => fmtInt(v) + ' clicks'} />} />
+                      <Bar dataKey="greek" name="greek" stackId="a" fill={T.c1} />
+                      <Bar dataKey="matcha" name="matcha" stackId="a" fill={T.c2} />
+                      <Bar dataKey="protein" name="protein" stackId="a" fill={T.c3} />
+                      <Bar dataKey="wicked" name="wicked" stackId="a" fill={T.c4} radius={[0, 8, 8, 0]} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                  <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap', marginTop: 6 }}>
+                    {CAMPAIGNS.map((c, i) => (
+                      <div key={c.id} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                        <span style={{ width: 10, height: 10, borderRadius: 2, background: [T.c1, T.c2, T.c3, T.c4][i] }} />
+                        <span style={{ fontSize: 12, color: T.n600 }}>{c.name}</span>
+                      </div>
+                    ))}
+                  </div>
+                </Panel>
+
+                {/* Audience × campaign matrix */}
+                <Panel
+                  title="audience × campaign matrix"
+                  subtitle="tiktok audience performance by campaign · shaded by clicks"
+                  pad={0}
+                  style={{ marginBottom: 20 }}
+                >
+                  <div style={{ overflowX: 'auto', padding: '0 4px 4px' }}>
+                    <table style={{ width: '100%', borderCollapse: 'separate', borderSpacing: 0 }}>
+                      <thead>
+                        <tr>
+                          <th style={{ padding: '12px 14px', textAlign: 'left', fontSize: 12, fontWeight: 500, color: T.n600, background: T.n50, borderBottom: `1px solid ${T.n100}` }}>Audience</th>
+                          {CAMPAIGNS.map(c => (
+                            <th key={c.id} style={{ padding: '12px 14px', textAlign: 'right', fontSize: 12, fontWeight: 500, color: T.n600, background: T.n50, borderBottom: `1px solid ${T.n100}` }}>{c.name}</th>
+                          ))}
+                          <th style={{ padding: '12px 14px', textAlign: 'right', fontSize: 12, fontWeight: 500, color: T.n600, background: T.n50, borderBottom: `1px solid ${T.n100}` }}>Total clicks</th>
+                          <th style={{ padding: '12px 14px', textAlign: 'right', fontSize: 12, fontWeight: 500, color: T.n600, background: T.n50, borderBottom: `1px solid ${T.n100}` }}>Reach</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {audienceRows.map((row, i) => {
+                          const maxCell = Math.max(...audienceRows.flatMap(r => CAMPAIGNS.map(c => r[c.id] || 0)));
+                          return (
+                            <tr key={row.name}>
+                              <td style={{ padding: '14px', borderBottom: `1px solid ${T.n100}`, fontSize: 13, color: T.n700, fontWeight: 500 }}>
+                                {row.name}
+                                {i === 0 && <span style={{ marginLeft: 8, padding: '2px 8px', borderRadius: 9999, background: T.p50, color: T.p600, fontSize: 10, fontWeight: 600 }}>scale driver</span>}
+                              </td>
+                              {CAMPAIGNS.map(c => {
+                                const v = row[c.id] || 0;
+                                const intensity = maxCell > 0 ? v / maxCell : 0;
+                                return (
+                                  <td key={c.id} style={{
+                                    padding: '14px', borderBottom: `1px solid ${T.n100}`,
+                                    fontFamily: T.fontMono, fontSize: 13, textAlign: 'right',
+                                    color: v > 0 ? T.n700 : T.n300,
+                                    background: v > 0 ? `rgba(1, 151, 217, ${intensity * 0.18})` : 'transparent',
+                                  }}>{v > 0 ? fmtInt(v) : '—'}</td>
+                                );
+                              })}
+                              <td style={{ padding: '14px', borderBottom: `1px solid ${T.n100}`, fontFamily: T.fontMono, fontSize: 13, textAlign: 'right', color: T.n700, fontWeight: 600 }}>
+                                {fmtInt(row.totalClicks)}
+                              </td>
+                              <td style={{ padding: '14px', borderBottom: `1px solid ${T.n100}`, fontFamily: T.fontMono, fontSize: 13, textAlign: 'right', color: T.n600 }}>
+                                {fmtNum(row.totalReach)}
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                </Panel>
+              </>
+            );
+          })()}
+
+          </>)}
+          {/* ================= END AUDIENCES VIEW ================= */}
+
+
+          {/* ================= STORES VIEW ================= */}
+          {activeNav === 'stores' && (<>
+
+          {/* Hero stores KPI row */}
+          <div className="yf-stagger" style={{
+            display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)',
+            gap: 18, marginBottom: 20,
+          }}>
+            <KPICard
+              hero
+              label="store visits (google)"
+              value={Math.round(activeConv.storeVisits)}
+              sparkData={storeSeries}
+              sparkColor={T.success}
+              icon={Store}
+              context={active ? `${active.name} campaign` : 'across 4 campaigns · 1,300+ locations'}
+            />
+            <KPICard
+              label="directions requests"
+              value={activeConv.directions}
+              sparkData={CAMPAIGNS.map(c => CONVERSIONS[c.id].directions)}
+              sparkColor={T.blue}
+              icon={MapPin}
+              context="get-directions tap → walk-in intent"
+            />
+            <KPICard
+              label="online orders"
+              value={activeConv.orders}
+              sparkData={CAMPAIGNS.map(c => CONVERSIONS[c.id].orders)}
+              sparkColor={T.c4}
+              icon={Target}
+              context="order-online conversions from search"
+            />
+            <KPICard
+              label="calls + inquiries"
+              value={activeConv.clicksToCall + activeConv.calls}
+              sparkData={CAMPAIGNS.map(c => CONVERSIONS[c.id].clicksToCall + CONVERSIONS[c.id].calls)}
+              sparkColor={T.pink}
+              icon={MousePointer}
+              context={`${fmtInt(activeConv.clicksToCall)} clicks to call · ${fmtInt(activeConv.calls)} direct calls`}
+            />
+          </div>
+
+          {/* Per-campaign store metrics table */}
+          <Panel
+            title="store drive-to-store results per campaign"
+            subtitle="google local action outputs · sorted by store visits"
+            pad={0}
+            style={{ marginBottom: 20 }}
+          >
+            <div style={{ overflowX: 'auto', padding: '0 4px 4px' }}>
+              <table style={{ width: '100%', borderCollapse: 'separate', borderSpacing: 0 }}>
+                <thead>
+                  <tr>
+                    <th style={{ padding: '12px 14px', textAlign: 'left', fontSize: 12, fontWeight: 500, color: T.n600, background: T.n50, borderBottom: `1px solid ${T.n100}` }}>Campaign</th>
+                    <th style={{ padding: '12px 14px', textAlign: 'right', fontSize: 12, fontWeight: 500, color: T.n600, background: T.n50, borderBottom: `1px solid ${T.n100}` }}>Store visits</th>
+                    <th style={{ padding: '12px 14px', textAlign: 'right', fontSize: 12, fontWeight: 500, color: T.n600, background: T.n50, borderBottom: `1px solid ${T.n100}` }}>Directions</th>
+                    <th style={{ padding: '12px 14px', textAlign: 'right', fontSize: 12, fontWeight: 500, color: T.n600, background: T.n50, borderBottom: `1px solid ${T.n100}` }}>Menu views</th>
+                    <th style={{ padding: '12px 14px', textAlign: 'right', fontSize: 12, fontWeight: 500, color: T.n600, background: T.n50, borderBottom: `1px solid ${T.n100}` }}>Orders</th>
+                    <th style={{ padding: '12px 14px', textAlign: 'right', fontSize: 12, fontWeight: 500, color: T.n600, background: T.n50, borderBottom: `1px solid ${T.n100}` }}>Calls</th>
+                    <th style={{ padding: '12px 14px', textAlign: 'right', fontSize: 12, fontWeight: 500, color: T.n600, background: T.n50, borderBottom: `1px solid ${T.n100}` }}>Other engagements</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {[...CAMPAIGNS].sort((a, b) => CONVERSIONS[b.id].storeVisits - CONVERSIONS[a.id].storeVisits).map(c => {
+                    const conv = CONVERSIONS[c.id];
+                    const maxStore = Math.max(...CAMPAIGNS.map(x => CONVERSIONS[x.id].storeVisits));
+                    return (
+                      <tr key={c.id}
+                        onClick={() => setActiveId(c.id)}
+                        style={{
+                          cursor: 'pointer',
+                          background: activeId === c.id ? T.b50 : 'transparent',
+                          transition: `background ${T.easeOut} 140ms`,
+                        }}>
+                        <td style={{ padding: '14px', borderBottom: `1px solid ${T.n100}`, fontSize: 13 }}>
+                          <div style={{ fontWeight: 600, color: T.n700 }}>{c.name}</div>
+                          <div style={{ fontSize: 11, color: T.n400, marginTop: 2 }}>{c.dateRange}</div>
+                        </td>
+                        <td style={{ padding: '14px', borderBottom: `1px solid ${T.n100}`, fontFamily: T.fontMono, fontSize: 14, textAlign: 'right', color: T.n700, fontWeight: 600 }}>
+                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 8 }}>
+                            <div style={{ width: 60, height: 4, background: T.n100, borderRadius: 2, position: 'relative', overflow: 'hidden' }}>
+                              <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: (conv.storeVisits / maxStore * 100) + '%', background: T.success }} />
+                            </div>
+                            {fmtInt(conv.storeVisits)}
+                          </div>
+                        </td>
+                        <td style={{ padding: '14px', borderBottom: `1px solid ${T.n100}`, fontFamily: T.fontMono, fontSize: 13, textAlign: 'right', color: T.n600 }}>{fmtInt(conv.directions)}</td>
+                        <td style={{ padding: '14px', borderBottom: `1px solid ${T.n100}`, fontFamily: T.fontMono, fontSize: 13, textAlign: 'right', color: T.n600 }}>{fmtInt(conv.menuViews)}</td>
+                        <td style={{ padding: '14px', borderBottom: `1px solid ${T.n100}`, fontFamily: T.fontMono, fontSize: 13, textAlign: 'right', color: T.n600 }}>{fmtInt(conv.orders)}</td>
+                        <td style={{ padding: '14px', borderBottom: `1px solid ${T.n100}`, fontFamily: T.fontMono, fontSize: 13, textAlign: 'right', color: T.n600 }}>{fmtInt(conv.calls + conv.clicksToCall)}</td>
+                        <td style={{ padding: '14px', borderBottom: `1px solid ${T.n100}`, fontFamily: T.fontMono, fontSize: 13, textAlign: 'right', color: T.n600 }}>{fmtInt(conv.otherEng)}</td>
+                      </tr>
+                    );
+                  })}
+                  <tr style={{ background: T.n50 }}>
+                    <td style={{ padding: '14px', fontSize: 13, fontWeight: 600, color: T.n700 }}>total</td>
+                    <td style={{ padding: '14px', fontFamily: T.fontMono, fontSize: 14, textAlign: 'right', color: T.n700, fontWeight: 700 }}>
+                      {fmtInt(CAMPAIGNS.reduce((a, c) => a + CONVERSIONS[c.id].storeVisits, 0))}
+                    </td>
+                    <td style={{ padding: '14px', fontFamily: T.fontMono, fontSize: 13, textAlign: 'right', color: T.n700, fontWeight: 600 }}>
+                      {fmtInt(CAMPAIGNS.reduce((a, c) => a + CONVERSIONS[c.id].directions, 0))}
+                    </td>
+                    <td style={{ padding: '14px', fontFamily: T.fontMono, fontSize: 13, textAlign: 'right', color: T.n700, fontWeight: 600 }}>
+                      {fmtInt(CAMPAIGNS.reduce((a, c) => a + CONVERSIONS[c.id].menuViews, 0))}
+                    </td>
+                    <td style={{ padding: '14px', fontFamily: T.fontMono, fontSize: 13, textAlign: 'right', color: T.n700, fontWeight: 600 }}>
+                      {fmtInt(CAMPAIGNS.reduce((a, c) => a + CONVERSIONS[c.id].orders, 0))}
+                    </td>
+                    <td style={{ padding: '14px', fontFamily: T.fontMono, fontSize: 13, textAlign: 'right', color: T.n700, fontWeight: 600 }}>
+                      {fmtInt(CAMPAIGNS.reduce((a, c) => a + CONVERSIONS[c.id].calls + CONVERSIONS[c.id].clicksToCall, 0))}
+                    </td>
+                    <td style={{ padding: '14px', fontFamily: T.fontMono, fontSize: 13, textAlign: 'right', color: T.n700, fontWeight: 600 }}>
+                      {fmtInt(CAMPAIGNS.reduce((a, c) => a + CONVERSIONS[c.id].otherEng, 0))}
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </Panel>
+
+          {/* Conversion funnel reused, expanded */}
+          <Panel
+            title="local conversion breakdown"
+            subtitle={active ? `${active.name} campaign · 8 local action types` : 'combined · 8 local action types from google ads'}
+            style={{ marginBottom: 20 }}
+          >
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12 }}>
+              {[
+                { label: 'other engagements', val: activeConv.otherEng, Icon: Hash, c: T.c1 },
+                { label: 'directions', val: activeConv.directions, Icon: MapPin, c: T.c2 },
+                { label: 'menu views', val: activeConv.menuViews, Icon: Eye, c: T.c3 },
+                { label: 'store visits', val: Math.round(activeConv.storeVisits), Icon: Store, c: T.success },
+                { label: 'website visits', val: activeConv.websiteVisits, Icon: LayoutGrid, c: T.c6 },
+                { label: 'orders', val: activeConv.orders, Icon: Target, c: T.c4 },
+                { label: 'clicks to call', val: activeConv.clicksToCall, Icon: MousePointer, c: T.c7 },
+                { label: 'calls from ads', val: activeConv.calls, Icon: Users, c: T.c3 },
+              ].map(s => (
+                <div key={s.label} style={{
+                  background: T.n25, border: `1px solid ${T.n100}`,
+                  borderRadius: 12, padding: '14px 16px',
+                  display: 'flex', flexDirection: 'column', gap: 8,
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <div style={{ fontSize: 11, color: T.n500, fontWeight: 500 }}>{s.label}</div>
+                    <div style={{
+                      width: 22, height: 22, borderRadius: 6,
+                      background: s.c + '1F', color: s.c,
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    }}>
+                      <s.Icon size={12} strokeWidth={1.75} />
+                    </div>
+                  </div>
+                  <div style={{
+                    fontFamily: T.fontDisplay, fontSize: 22, fontWeight: 700,
+                    color: T.n700, letterSpacing: '-0.02em',
+                    fontVariantNumeric: 'tabular-nums',
+                  }}>{fmtInt(s.val)}</div>
+                </div>
+              ))}
+            </div>
+          </Panel>
+
+          </>)}
+          {/* ================= END STORES VIEW ================= */}
+
 
           {/* FOOTER */}
           <div style={{
