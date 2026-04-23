@@ -57,11 +57,11 @@ const CAMPAIGNS = [
     theme: 'Greek Froyo',
     dateRange: 'Jun 1 – Sep 20, 2025',
     budget: 10000,
-    spend: 9089.39,
-    clicks: 49729,
-    impressions: 5321230,
-    ctr: 0.00935,
-    cpc: 0.1828,
+    spend: 11581.06,
+    clicks: 51266,
+    impressions: 6033138,
+    ctr: 0.00850,
+    cpc: 0.22589,
     reach: 624358,
     storeVisits: 1145.29,
     directions: 5655,
@@ -73,12 +73,12 @@ const CAMPAIGNS = [
     topKeywordClicks: 638,
     topCreative: "TikTok 'We popped into Yogen Fruz…' — 4,134 clicks / 664k views",
     insight: 'Best at efficient traffic scale via TikTok Youth ($0.09 CPC) plus strong Google search intent (8.01% Froyo ad-group CTR and 9.87% top-search-ad CTR).',
-    budgetStatus: 'under',
+    budgetStatus: 'over',
     channels: {
       Google:      { spend: 1958.13, clicks: 6553,  impressions: 167637,  ctr: 0.0391, cpc: 0.30, reach: null },
       Meta:        { spend: 2217.26, clicks: 15187, impressions: 508646,  ctr: 0.0299, cpc: 0.15, reach: 299936 },
       TikTok:      { spend: 4914.00, clicks: 27989, impressions: 4644947, ctr: 0.0060, cpc: 0.18, reach: 624358, videoViews: 4603906 },
-      GroundTruth: { spend: 0,       clicks: 0,     impressions: 0,       ctr: 0,      cpc: 0,    reach: 0,      partial: true },
+      GroundTruth: { spend: 2491.67, clicks: 1537,  impressions: 711908,  ctr: 0.00216, cpc: 1.62, reach: 227235 },
     },
   },
   {
@@ -87,11 +87,11 @@ const CAMPAIGNS = [
     theme: 'Matcha',
     dateRange: 'Sep 22 – Nov 22, 2025',
     budget: 8000,
-    spend: 7842.63,
-    clicks: 35868,
-    impressions: 2745292,
-    ctr: 0.01307,
-    cpc: 0.2187,
+    spend: 9229.70,
+    clicks: 37400,
+    impressions: 3092059,
+    ctr: 0.01210,
+    cpc: 0.24678,
     reach: 468179,
     storeVisits: 1129.67,
     directions: 3638,
@@ -103,12 +103,12 @@ const CAMPAIGNS = [
     topKeywordClicks: 934,
     topCreative: "Google Search 'Try Our New Premium Matcha' — 2,208 clicks / 6.42% CTR",
     insight: "Strong blend of branded search demand and efficient paid social: Meta CTR exceeded 4% at a $0.12 CPC while search intent remained highly relevant around brand and 'near me' queries.",
-    budgetStatus: 'under',
+    budgetStatus: 'over',
     channels: {
       Google:      { spend: 3196.90, clicks: 8798,  impressions: 303131,  ctr: 0.0290, cpc: 0.36, reach: null },
       Meta:        { spend: 1575.73, clicks: 13322, impressions: 320178,  ctr: 0.0416, cpc: 0.12, reach: 153801 },
       TikTok:      { spend: 3070.00, clicks: 13748, impressions: 2121983, ctr: 0.0065, cpc: 0.22, reach: 468179, videoViews: 2034940 },
-      GroundTruth: { spend: 0,       clicks: 0,     impressions: 0,       ctr: 0,      cpc: 0,    reach: 0,      partial: true },
+      GroundTruth: { spend: 1387.07, clicks: 1532,  impressions: 346767,  ctr: 0.00442, cpc: 0.91, reach: 116388 },
     },
   },
   {
@@ -118,10 +118,10 @@ const CAMPAIGNS = [
     dateRange: 'Nov 22 – Dec 31, 2025',
     budget: 8000,
     spend: 7919.07,
-    clicks: 40552,
-    impressions: 2919385,
-    ctr: 0.01389,
-    cpc: 0.1953,
+    clicks: 40555,
+    impressions: 2920926,
+    ctr: 0.01388,
+    cpc: 0.19527,
     reach: 502071,
     storeVisits: 938.41,
     directions: 2362,
@@ -138,7 +138,7 @@ const CAMPAIGNS = [
       Google:      { spend: 2995.29, clicks: 6473,  impressions: 184637,  ctr: 0.0351, cpc: 0.46, reach: null },
       Meta:        { spend: 1554.78, clicks: 19616, impressions: 333300,  ctr: 0.0589, cpc: 0.08, reach: 158507 },
       TikTok:      { spend: 3040.00, clicks: 14038, impressions: 2369819, ctr: 0.0059, cpc: 0.22, reach: 502071, videoViews: 2300904 },
-      GroundTruth: { spend: 329,     clicks: 425,   impressions: 31629,   ctr: 0.0134, cpc: 0.77, reach: 19931 },
+      GroundTruth: { spend: 329,     clicks: 428,   impressions: 33170,   ctr: 0.01290, cpc: 0.77, reach: 20577 },
     },
   },
   {
@@ -1311,17 +1311,17 @@ export default function Dashboard() {
                     <Td mono align="right" color={T.n700}>{fmtMoney(34000)}</Td>
                     <Td mono align="right" color={T.n700}>
                       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 8 }}>
-                        <span style={{ fontWeight: 600 }}>{fmtMoney(35280.18)}</span>
+                        <span style={{ fontWeight: 600 }}>{fmtMoney(39158.92)}</span>
                         <span style={{
                           fontSize: 10, padding: '2px 6px', borderRadius: 9999,
                           background: T.warningBg, color: T.warning, fontWeight: 600, fontFamily: T.fontBody,
-                        }}>104%</span>
+                        }}>115%</span>
                       </div>
                     </Td>
-                    <Td mono align="right" color={T.n700}>{fmtInt(198295)}</Td>
-                    <Td mono align="right" color={T.n700}>{fmtInt(17789175)}</Td>
-                    <Td mono align="right" color={T.n700}>{fmtPct(198295 / 17789175)}</Td>
-                    <Td mono align="right" color={T.n700}>{fmtCpc(35280.18 / 198295)}</Td>
+                    <Td mono align="right" color={T.n700}>{fmtInt(201367)}</Td>
+                    <Td mono align="right" color={T.n700}>{fmtInt(18849391)}</Td>
+                    <Td mono align="right" color={T.n700}>{fmtPct(201367 / 18849391)}</Td>
+                    <Td mono align="right" color={T.n700}>{fmtCpc(39158.92 / 201367)}</Td>
                     <Td mono align="right" color={T.n400}>
                       <span style={{ fontSize: 11 }}>non-additive</span>
                     </Td>
@@ -1698,7 +1698,7 @@ export default function Dashboard() {
             gap: 18, marginBottom: 20,
           }}>
             {CHANNEL_AGG.map((ch, i) => {
-              const pctOfClicks = (ch.clicks / 198295) * 100;
+              const pctOfClicks = (ch.clicks / 201367) * 100;
               const chColor = [T.c1, T.c2, T.c3, T.c4][i];
               const isLive = ch.clicks > 0;
               return (
@@ -1888,7 +1888,7 @@ export default function Dashboard() {
                       </td>
                     ))}
                     <td style={{ padding: '14px', fontFamily: T.fontMono, fontSize: 13, textAlign: 'right', color: T.n700, fontWeight: 700 }}>
-                      {fmtInt(198295)}
+                      {fmtInt(201367)}
                     </td>
                   </tr>
                 </tbody>
