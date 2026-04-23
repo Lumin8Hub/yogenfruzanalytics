@@ -37,6 +37,10 @@ export const Route = createRootRoute({
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
       { name: "twitter:site", content: "@Lovable" },
+      { name: "twitter:title", content: "Yogen Früz Marketing Dashboard" },
+      { name: "twitter:description", content: "Interactive Yogen Früz marketing analytics dashboard." },
+      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/ef3c8c64-c4e9-4654-812d-05a3e4fafe4c/id-preview-cf548744--7df012f8-18f6-48c9-82c9-d59b6faad10c.lovable.app-1776952687745.png" },
+      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/ef3c8c64-c4e9-4654-812d-05a3e4fafe4c/id-preview-cf548744--7df012f8-18f6-48c9-82c9-d59b6faad10c.lovable.app-1776952687745.png" },
     ],
     links: [
       {
