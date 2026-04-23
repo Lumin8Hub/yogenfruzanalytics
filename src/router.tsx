@@ -55,9 +55,14 @@ function DefaultErrorComponent({ error, reset }: { error: Error; reset: () => vo
 }
 
 export const getRouter = () => {
+  // Vite's BASE_URL always has a trailing slash, but TanStack Router 
+  // strictly forbids trailing slashes in the basepath (unless it's exactly "/").
+  const rawBase = import.meta.env.BASE_URL;
+  const safeBasepath = rawBase === '/' ? '/' : rawBase.replace(/\/$/, '');
+
   const router = createRouter({
     routeTree,
-    basepath: import.meta.env.BASE_URL,
+    basepath: safeBasepath,
     context: {},
     scrollRestoration: true,
     defaultPreloadStaleTime: 0,
