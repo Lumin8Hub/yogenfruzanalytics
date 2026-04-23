@@ -1,4 +1,4 @@
-import { existsSync, readdirSync, writeFileSync } from "node:fs";
+import { existsSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 
 const clientDir = "dist/client";
@@ -15,6 +15,19 @@ const styles = assets.find((file) => /^styles-.*\.css$/.test(file));
 if (!main) {
   throw new Error("Could not find the generated client entry in dist/client/assets.");
 }
+
+const mainPath = join(assetsDir, main);
+const mainJs = readFileSync(mainPath, "utf8");
+const staticMainJs = mainJs.replace(
+  /([\w$]+)\.hydrateRoot\(document,(.+?)\)\}\);export\{/s,
+  '$1.createRoot(document.getElementById("root")).render($2)});export{',
+);
+
+if (staticMainJs === mainJs) {
+  throw new Error("Could not convert the client entry from hydration to static mounting.");
+}
+
+writeFileSync(mainPath, staticMainJs);
 
 const rawBase = process.env.GITHUB_PAGES_BASE || "/";
 const base = rawBase.startsWith("/") ? rawBase : `/${rawBase}`;
@@ -33,6 +46,7 @@ const html = `<!doctype html>
     <meta name="description" content="Interactive Yogen Früz marketing analytics dashboard." />
 ${stylesheet}  </head>
   <body>
+    <div id="root"></div>
     <script type="module" crossorigin src="${normalizedBase}assets/${main}"></script>
   </body>
 </html>
