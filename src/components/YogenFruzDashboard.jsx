@@ -879,21 +879,25 @@ export default function Dashboard() {
                 <span>all campaigns</span>
                 <ChevronDown size={14} strokeWidth={2} />
               </div>
-              <button style={{
-                background: T.blue, color: T.n0, border: 'none',
-                padding: '10px 20px', borderRadius: 9999,
-                fontFamily: T.fontBody, fontSize: 13, fontWeight: 500,
-                letterSpacing: '-0.005em',
-                cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6,
-                boxShadow: T.shadowSm,
-                transition: `all ${T.easeOut} 180ms`,
-              }}
+              <a
+                href={`${import.meta.env.BASE_URL}Yogen_Fruz_Marketing_Dashboard_Prep.xlsx`}
+                download="Yogen_Fruz_Marketing_Dashboard_Prep.xlsx"
+                style={{
+                  background: T.blue, color: T.n0, border: 'none',
+                  padding: '10px 20px', borderRadius: 9999,
+                  fontFamily: T.fontBody, fontSize: 13, fontWeight: 500,
+                  letterSpacing: '-0.005em',
+                  cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6,
+                  boxShadow: T.shadowSm,
+                  textDecoration: 'none',
+                  transition: `all ${T.easeOut} 180ms`,
+                }}
                 onMouseEnter={e => { e.currentTarget.style.background = T.b500; e.currentTarget.style.boxShadow = T.shadowMd; }}
                 onMouseLeave={e => { e.currentTarget.style.background = T.blue; e.currentTarget.style.boxShadow = T.shadowSm; }}
               >
                 <Download size={15} strokeWidth={2} />
-                export csv
-              </button>
+                download the data
+              </a>
             </div>
           </header>
 
