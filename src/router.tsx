@@ -58,7 +58,7 @@ export const getRouter = () => {
   const router = createRouter({
     routeTree,
     // Hardcode basepath to bypass Vite environment variable trailing slashes completely
-    basepath: import.meta.env.DEV ? "/" : "/yogenfruzanalytics",
+    basepath: import.meta.env.DEV ? '/' : '/yogenfruzanalytics',
     context: {},
     scrollRestoration: true,
     defaultPreloadStaleTime: 0,

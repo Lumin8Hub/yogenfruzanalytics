@@ -42,8 +42,8 @@ const html = `<!doctype html>
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Community Impact Report 2025-26</title>
-    <meta name="description" content="Infographic report website sharing the 2025-26 Community Impact Study findings for Jewish Canada." />
+    <title>Yogen Früz Marketing Dashboard</title>
+    <meta name="description" content="Interactive Yogen Früz marketing analytics dashboard." />
 ${stylesheet}  </head>
   <body>
     <div id="root"></div>
