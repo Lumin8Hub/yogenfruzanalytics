@@ -1,18 +1,20 @@
 import { createFileRoute } from "@tanstack/react-router";
-import YogenFruzDashboard from "@/components/YogenFruzDashboard.jsx";
+import CISInfographicSite from "@/components/CISInfographicSite.jsx";
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Yogen Früz Marketing Dashboard" },
+      { title: "Community Impact Report 2025-26" },
       {
         name: "description",
-        content: "Interactive Yogen Früz campaign analytics dashboard for spend, clicks, conversions, channels, keywords, and creatives.",
+        content:
+          "Infographic report website sharing the 2025-26 Community Impact Study findings for Jewish Canada.",
       },
-      { property: "og:title", content: "Yogen Früz Marketing Dashboard" },
+      { property: "og:title", content: "Community Impact Report 2025-26" },
       {
         property: "og:description",
-        content: "Explore campaign performance across Yogen Früz paid media channels and local conversion actions.",
+        content:
+          "Explore key findings on safety, priorities, institutional satisfaction, and community resilience.",
       },
     ],
   }),
@@ -20,5 +22,5 @@ export const Route = createFileRoute("/")({
 });
 
 function Index() {
-  return <YogenFruzDashboard />;
+  return <CISInfographicSite />;
 }
